@@ -1,0 +1,19 @@
+name: Validate catalog
+on:
+  pull_request:
+  push:
+    branches: [main]
+  schedule:
+    - cron: "0 3 * * 1"   # 매주 월요일 — 올라간 Release 파일이 카탈로그의 sha256 과 여전히 같은지
+jobs:
+  validate:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - run: uv sync
+      - run: uv run pytest -q
+      - name: 카탈로그 검증 (스키마·신뢰 소유자·URL)
+        run: uv run python scripts/validate.py
+      - name: 내려받아 sha256·내용 확인 (서버·플러그인)
+        run: uv run python scripts/validate.py --verify-downloads

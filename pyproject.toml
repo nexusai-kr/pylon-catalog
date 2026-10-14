@@ -1,0 +1,19 @@
+[project]
+name = "pylon-catalog"
+version = "0.1.0"
+description = "Pylon Grid 에 설치할 수 있는 MCP 서버·플러그인 카탈로그 (catalog.json) 와 검증 도구"
+requires-python = ">=3.12"
+license = "Apache-2.0"
+license-files = ["LICENSE", "NOTICE"]
+authors = [{ name = "Nexus AI corp." }]
+dependencies = ["jsonschema>=4"]
+
+[dependency-groups]
+dev = ["pytest>=8"]
+
+[tool.uv]
+package = false
+
+[tool.pytest.ini_options]
+pythonpath = ["scripts"]
+testpaths = ["tests"]

@@ -1,0 +1,95 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/nexusai-kr/pylon-catalog/blob/main/catalog.schema.json",
+  "title": "Pylon catalog",
+  "description": "Pylon Grid 가 읽는 카탈로그. pylon-grid-mcp 는 servers[], pylon-grid-plugin 은 plugins[] 를 읽고 나머지는 무시한다.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "name", "display_name", "servers", "plugins"],
+  "properties": {
+    "schema_version": {"const": 2},
+    "name": {"type": "string", "minLength": 1},
+    "display_name": {"type": "string", "minLength": 1},
+    "description": {"type": "string"},
+    "servers": {"type": "array", "items": {"$ref": "#/$defs/server"}},
+    "plugins": {"type": "array", "items": {"$ref": "#/$defs/plugin"}}
+  },
+  "$defs": {
+    "slug": {"type": "string", "pattern": "^[a-z0-9][a-z0-9._-]{0,63}$"},
+    "version": {"type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+([-+][0-9A-Za-z.-]+)?$"},
+    "repository": {"type": "string", "pattern": "^https://github\\.com/[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$"},
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "server": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "display_name", "description", "version", "repository", "license", "download", "sha256", "platforms"],
+      "properties": {
+        "name": {"$ref": "#/$defs/slug", "description": "Grid 서버 이름(URL 경로·권한 키). mcpb manifest 의 name 과 같아야 한다."},
+        "display_name": {"type": "string", "minLength": 1},
+        "description": {"type": "string", "minLength": 1},
+        "category": {"type": "string"},
+        "version": {"$ref": "#/$defs/version"},
+        "repository": {"$ref": "#/$defs/repository"},
+        "license": {"type": "string", "minLength": 1},
+        "download": {"type": "string", "pattern": "^https://github\\.com/[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+/releases/download/[^/]+/[^/]+\\.mcpb$"},
+        "sha256": {"$ref": "#/$defs/sha256"},
+        "size_bytes": {"type": "integer", "minimum": 1},
+        "platforms": {"type": "array", "minItems": 1, "items": {"enum": ["linux-x86_64", "linux-aarch64", "any"]}},
+        "requires": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "connection": {"type": "string", "description": "사용자가 먼저 연결해야 하는 외부 서비스(Gate provider 이름)"},
+            "scopes": {"type": "array", "items": {"type": "string"}}
+          }
+        },
+        "tools": {"type": "array", "items": {"type": "string"}}
+      }
+    },
+    "plugin": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "display_name", "description", "version", "repository", "license", "download", "sha256"],
+      "properties": {
+        "name": {"$ref": "#/$defs/slug", "description": "Grid 플러그인 이름(권한 키). 묶음의 plugin.json 의 name 과 같아야 한다."},
+        "display_name": {"type": "string", "minLength": 1},
+        "description": {"type": "string", "minLength": 1},
+        "category": {"type": "string"},
+        "version": {"$ref": "#/$defs/version"},
+        "repository": {"$ref": "#/$defs/repository"},
+        "license": {"type": "string", "minLength": 1},
+        "download": {"type": "string", "pattern": "^https://github\\.com/[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+/releases/download/[^/]+/[^/]+\\.zip$"},
+        "sha256": {"$ref": "#/$defs/sha256"},
+        "size_bytes": {"type": "integer", "minimum": 1},
+        "components": {
+          "type": "object",
+          "additionalProperties": false,
+          "description": "묶음 안 구성물 이름(표시용). 설치 때 Grid 가 묶음을 다시 분석한다.",
+          "properties": {
+            "skills": {"type": "array", "items": {"type": "string"}},
+            "agents": {"type": "array", "items": {"type": "string"}}
+          }
+        },
+        "contains": {
+          "type": "object",
+          "additionalProperties": false,
+          "description": "비스킬 구성물 유무(표시용). hooks·tools 는 Grid 에서 기본 비허용이다.",
+          "properties": {
+            "hooks": {"type": "boolean"},
+            "tools": {"type": "boolean"},
+            "bin": {"type": "boolean"},
+            "mcpb": {"type": "boolean"}
+          }
+        },
+        "requires": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "mcp": {"type": "array", "items": {"$ref": "#/$defs/slug"}, "description": "먼저 등록돼 있어야 하는 Grid MCP 서버 이름"},
+            "plugins": {"type": "array", "items": {"$ref": "#/$defs/slug"}}
+          }
+        }
+      }
+    }
+  }
+}
