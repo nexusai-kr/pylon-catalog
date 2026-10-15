@@ -5,7 +5,7 @@
 The list of **MCP servers** and **plugins** installable on **Pylon Grid**. Each item ships as a `.mcpb` (server) or `.zip` (plugin) bundle attached to a GitHub Release in its own repository; [`catalog.json`](catalog.json) tells Grid what exists, where to download it, and its SHA-256.
 
 ## 목록
-`catalog.json` 의 `servers`(MCP 서버)와 `plugins`(플러그인)를 보세요. Grid 의 `pylon-grid-mcp` 는 `servers` 를, `pylon-grid-plugin` 은 `plugins` 를 읽고 나머지는 무시합니다.
+`catalog.json` 의 `servers`(MCP 서버)와 `plugins`(플러그인)를 보세요. **지금은 두 목록이 모두 비어 있습니다** — 이전에 있던 항목은 비공개 카탈로그로 옮겼습니다. Grid 의 `pylon-grid-mcp` 는 `servers` 를, `pylon-grid-plugin` 은 `plugins` 를 읽고 나머지는 무시합니다.
 
 ## 사용하는 쪽 (Grid 관리자)
 1. Grid 관리 화면 → **카탈로그** 에서 목록을 보고 **설치**를 누른다. 설치 직후에는 아무도 쓰지 못한다 — **권한**에서 사용자·그룹을 허용한다.
@@ -46,7 +46,7 @@ The list of **MCP servers** and **plugins** installable on **Pylon Grid**. Each 
 2. 이 저장소에서 항목을 만든다 (gh CLI 필요). 서버인지 플러그인인지는 Release 파일로 알아낸다:
    ```bash
    uv sync
-   uv run python scripts/update_catalog.py nexusai-kr/pylon-mcp-google-gmail v0.1.0
+   uv run python scripts/update_catalog.py nexusai-kr/<서버 저장소> v0.1.0
    uv run python scripts/update_catalog.py nexusai-kr/pylon-plugin-news v1.0.0
    ```
 3. 바뀐 `catalog.json` 을 **Pull Request** 로 올린다. CI 가 스키마·신뢰 소유자·URL 을 검사하고, 파일을 내려받아 sha256·이름·버전·구성물까지 확인한다.
