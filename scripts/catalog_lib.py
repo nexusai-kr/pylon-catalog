@@ -23,8 +23,8 @@ def load(path: Path | None = None) -> dict:
     return json.loads((path or ROOT / "catalog.json").read_text(encoding="utf-8"))
 
 
-def validate(catalog: dict, schema: dict | None = None) -> list[str]:
-    """오류 문장 목록 (비어 있으면 통과)."""
+def validate(catalog: dict, schema: dict | None = None, root: Path | None = None) -> list[str]:
+    """오류 문장 목록 (비어 있으면 통과). `root` 를 주면 connectors[] 의 파일도 읽어 sha256·형식·이름을 확인한다."""
     schema = schema or json.loads((ROOT / "catalog.schema.json").read_text(encoding="utf-8"))
     errors = [
         f"{'/'.join(map(str, e.absolute_path)) or '(root)'}: {e.message}"
@@ -47,6 +47,43 @@ def validate(catalog: dict, schema: dict | None = None) -> list[str]:
                 errors.append(f"{key}/{name}: download 가 repository 의 Release 가 아닙니다")
             if dl and s.get("version") and f"-{s['version']}.{ext}" not in dl:
                 errors.append(f"{key}/{name}: download 파일명에 버전({s['version']})이 없습니다")
+    seen_c: set[str] = set()
+    for i, c in enumerate(catalog.get("connectors", [])):
+        if not isinstance(c, dict):
+            continue
+        name = c.get("name", f"#{i}")
+        if name in seen_c:
+            errors.append(f"connectors/{name}: 이름이 중복되었습니다")
+        seen_c.add(name)
+        if c.get("path") and c.get("version") and c["path"] != f"connectors/{name}/{name}-{c['version']}.json":
+            errors.append(f"connectors/{name}: path 가 connectors/<이름>/<이름>-<버전>.json 이 아닙니다")
+        if root is not None and c.get("path"):
+            errors += validate_connector_file(c, root)
+    return errors
+
+
+def validate_connector_file(entry: dict, root: Path) -> list[str]:
+    """connectors[] 항목이 가리키는 파일: 존재·sha256·connector.schema.json·이름/버전 일치·필수 입력(client_id/client_secret)."""
+    name, path = entry["name"], root / entry["path"]
+    if not path.is_file() or root not in path.resolve().parents:
+        return [f"connectors/{name}: 파일이 없습니다 ({entry['path']})"]
+    data = path.read_bytes()
+    if hashlib.sha256(data).hexdigest() != entry.get("sha256"):
+        return [f"connectors/{name}: sha256 이 다릅니다"]
+    try:
+        doc = json.loads(data)
+    except ValueError:
+        return [f"connectors/{name}: JSON 이 아닙니다"]
+    schema = json.loads((root / "connector.schema.json").read_text(encoding="utf-8"))
+    errors = [f"connectors/{name}: {'/'.join(map(str, e.absolute_path)) or '(root)'}: {e.message}"
+              for e in Draft202012Validator(schema).iter_errors(doc)]
+    if doc.get("name") != name or doc.get("version") != entry.get("version"):
+        errors.append(f"connectors/{name}: 파일의 name/version 이 카탈로그 항목과 다릅니다")
+    if {f.get("key") for f in doc.get("fields", [])} != {"client_id", "client_secret"}:
+        errors.append(f"connectors/{name}: fields 는 client_id 와 client_secret 이어야 합니다")
+    for key in ("client_id", "client_secret", "client_secret_env", "variants", "allowed_roles"):
+        if key in (doc.get("provider") or {}):
+            errors.append(f"connectors/{name}: provider 에 {key} 를 넣을 수 없습니다")
     return errors
 
 

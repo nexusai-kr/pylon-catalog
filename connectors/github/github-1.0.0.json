@@ -1,0 +1,93 @@
+{
+  "schema_version": 1,
+  "name": "github",
+  "version": "1.0.0",
+  "display_name": "GitHub (읽기 전용)",
+  "description": "저장소·이슈·PR 조회",
+  "category": "개발",
+  "provider": {
+    "kind": "oauth2",
+    "display": "GitHub (저장소·이슈·PR)",
+    "setup": {
+      "docs_url": "https://docs.github.com/apps/oauth-apps/building-oauth-apps/creating-an-oauth-app",
+      "restriction": "",
+      "steps": [
+        "GitHub > Settings(개인 또는 조직) > Developer settings > OAuth Apps > New OAuth App",
+        "Authorization callback URL 에 위의 Redirect URL 을 넣는다",
+        "Optional features 의 Expire user access tokens 를 켠다 (권장)",
+        "Client ID 와 Generate a new client secret 으로 만든 Client Secret 을 아래에 입력한다"
+      ]
+    },
+    "authorize_url": "https://github.com/login/oauth/authorize",
+    "token_url": "https://github.com/login/oauth/access_token",
+    "refresh_token": "none",
+    "pkce": false,
+    "offline_scope": false,
+    "max_accounts": 3,
+    "authorize_params": {
+      "prompt": "select_account"
+    },
+    "scopes_allowed": [
+      "repo",
+      "read:org"
+    ],
+    "default_scopes": [
+      "repo",
+      "read:org"
+    ],
+    "identity_check": {
+      "claim": "login",
+      "attribute": "login",
+      "mode": "none"
+    },
+    "account_key_claim": "sub",
+    "userinfo": {
+      "url": "https://api.github.com/user",
+      "headers": {
+        "Accept": "application/vnd.github+json",
+        "X-GitHub-Api-Version": "2022-11-28"
+      },
+      "map": {
+        "sub": "id",
+        "login": "login",
+        "email": "email"
+      }
+    },
+    "revoke": {
+      "url": "https://api.github.com/applications/{client_id}/grant",
+      "method": "DELETE",
+      "auth": "basic",
+      "format": "json",
+      "body": {
+        "access_token": "{token}"
+      }
+    }
+  },
+  "servers": [
+    {
+      "name": "github",
+      "url": "https://api.githubcopilot.com/mcp/readonly",
+      "display_name": "GitHub (읽기 전용)",
+      "description": "저장소·이슈·PR 조회",
+      "delegation": {
+        "when": "always",
+        "header": "Authorization",
+        "scheme": "Bearer",
+        "discovery": "snapshot"
+      }
+    }
+  ],
+  "fields": [
+    {
+      "key": "client_id",
+      "label": "Client ID",
+      "secret": false,
+      "pattern": "^\\S+$"
+    },
+    {
+      "key": "client_secret",
+      "label": "Client Secret",
+      "secret": true
+    }
+  ]
+}

@@ -183,5 +183,27 @@
       }
     }
   ],
-  "plugins": []
+  "plugins": [],
+  "connectors": [
+    {
+      "name": "github",
+      "display_name": "GitHub (읽기 전용)",
+      "description": "저장소·이슈·PR 조회",
+      "category": "개발",
+      "version": "1.0.0",
+      "license": "Apache-2.0",
+      "path": "connectors/github/github-1.0.0.json",
+      "sha256": "ed304620943af951967b37e3b96d9296b7587575b66a6a5b222a8754e2e19630"
+    },
+    {
+      "name": "slack",
+      "display_name": "Slack (읽기 전용)",
+      "description": "메시지·채널·캔버스 검색과 읽기",
+      "category": "협업",
+      "version": "1.0.0",
+      "license": "Apache-2.0",
+      "path": "connectors/slack/slack-1.0.0.json",
+      "sha256": "472f5e3fa21c0958e86c6e089e509a26089ebf60c17aa7cdef718252ab33d226"
+    }
+  ]
 }

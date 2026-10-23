@@ -1,0 +1,192 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/nexusai-kr/pylon-catalog/blob/main/connector.schema.json",
+  "title": "Pylon connector",
+  "description": "외부 서비스(OAuth) 연결 커넥터 한 개. 관리자가 Pylon 관리 화면에서 설치하면 Gate 가 provider 정의를, Grid 가 서버를 등록한다. provider 부분은 Gate 가 설치할 때 다시 검증한다(https·공개 호스트·알려진 필드만).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "name",
+    "version",
+    "display_name",
+    "description",
+    "provider",
+    "servers",
+    "fields"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": 1
+    },
+    "name": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9-]{0,40}$",
+      "description": "Gate provider 이름이자 콜백 주소의 일부(/v1/connections/<name>/callback)."
+    },
+    "version": {
+      "$ref": "#/$defs/version"
+    },
+    "display_name": {
+      "type": "string",
+      "minLength": 1
+    },
+    "description": {
+      "type": "string",
+      "minLength": 1
+    },
+    "category": {
+      "type": "string"
+    },
+    "provider": {
+      "type": "object",
+      "description": "Gate provider 정의(providers.yaml 한 블록에서 Client ID·Secret 만 뺀 것). Client ID·Secret·variants·allowed_roles 는 넣을 수 없다.",
+      "required": [
+        "authorize_url",
+        "token_url"
+      ],
+      "properties": {
+        "authorize_url": {
+          "$ref": "#/$defs/https"
+        },
+        "token_url": {
+          "$ref": "#/$defs/https"
+        }
+      }
+    },
+    "servers": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/server"
+      }
+    },
+    "fields": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/field"
+      },
+      "description": "설치 화면이 관리자에게 받는 값. client_id·client_secret 가 있어야 한다."
+    }
+  },
+  "$defs": {
+    "version": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+([-+][0-9A-Za-z.-]+)?$"
+    },
+    "https": {
+      "type": "string",
+      "pattern": "^https://[^\\s/]+(/\\S*)?$"
+    },
+    "server": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "url",
+        "delegation"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9._-]{0,63}$",
+          "description": "Grid 서버 이름(권한 키)."
+        },
+        "url": {
+          "$ref": "#/$defs/https"
+        },
+        "display_name": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "delegation": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "when": {
+              "enum": [
+                "always",
+                "call"
+              ]
+            },
+            "header": {
+              "type": "string"
+            },
+            "scheme": {
+              "type": "string"
+            },
+            "discovery": {
+              "enum": [
+                "upstream",
+                "snapshot"
+              ]
+            },
+            "scopes": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "비우면 provider.default_scopes. 서버마다 다른 scope 가 필요하면(구글) 여기에."
+            }
+          }
+        },
+        "tools": {
+          "type": "array",
+          "description": "설치 직후 쓸 도구 스냅샷(선택). 있으면 연결 전 사용자에게도 연결 카드가 바로 뜬다.",
+          "items": {
+            "type": "object",
+            "required": [
+              "name"
+            ],
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "description": {
+                "type": "string"
+              },
+              "inputSchema": {
+                "type": "object"
+              },
+              "annotations": {
+                "type": "object"
+              }
+            }
+          }
+        }
+      }
+    },
+    "field": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "key",
+        "label"
+      ],
+      "properties": {
+        "key": {
+          "enum": [
+            "client_id",
+            "client_secret"
+          ]
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1
+        },
+        "secret": {
+          "type": "boolean"
+        },
+        "pattern": {
+          "type": "string"
+        },
+        "help": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}
