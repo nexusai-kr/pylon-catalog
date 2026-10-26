@@ -1,0 +1,51 @@
+{
+  "schema_version": 1,
+  "name": "notion",
+  "version": "1.0.0",
+  "display_name": "Notion",
+  "description": "페이지·데이터베이스 검색과 읽기 (Notion 공식 원격 MCP)",
+  "category": "협업",
+  "provider": {
+    "kind": "oauth2",
+    "display": "Notion (페이지·데이터베이스)",
+    "discovery": "mcp",
+    "resource": "https://mcp.notion.com/mcp",
+    "refresh_token": "none",
+    "pkce": true,
+    "offline_scope": false,
+    "scopes_allowed": [
+      "default"
+    ],
+    "default_scopes": [
+      "default"
+    ],
+    "identity_check": {
+      "claim": "login",
+      "attribute": "login",
+      "mode": "none"
+    },
+    "setup": {
+      "docs_url": "https://developers.notion.com/guides/mcp/build-mcp-client",
+      "restriction": "",
+      "steps": [
+        "연결 버튼을 누르고 Notion 에서 접근할 워크스페이스와 페이지를 허용한다",
+        "앱을 만들거나 Client ID·Secret 을 넣을 필요가 없다 (Pylon 이 연결할 때 Notion 에 자동으로 등록한다)"
+      ]
+    }
+  },
+  "servers": [
+    {
+      "name": "notion",
+      "url": "https://mcp.notion.com/mcp",
+      "display_name": "Notion",
+      "description": "페이지·데이터베이스 검색과 읽기",
+      "delegation": {
+        "when": "always",
+        "header": "Authorization",
+        "scheme": "Bearer",
+        "discovery": "snapshot"
+      }
+    }
+  ],
+  "fields": []
+}

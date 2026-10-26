@@ -79,7 +79,13 @@ def validate_connector_file(entry: dict, root: Path) -> list[str]:
               for e in Draft202012Validator(schema).iter_errors(doc)]
     if doc.get("name") != name or doc.get("version") != entry.get("version"):
         errors.append(f"connectors/{name}: 파일의 name/version 이 카탈로그 항목과 다릅니다")
-    if {f.get("key") for f in doc.get("fields", [])} != {"client_id", "client_secret"}:
+    keys = {f.get("key") for f in doc.get("fields", [])}
+    if (doc.get("provider") or {}).get("discovery"):  # MCP 표준 OAuth: 서버에 자동 등록하므로 관리자 입력이 없다
+        if keys:
+            errors.append(f"connectors/{name}: discovery 커넥터의 fields 는 비어 있어야 합니다")
+        if not (doc.get("provider") or {}).get("resource"):
+            errors.append(f"connectors/{name}: discovery 커넥터에는 provider.resource(MCP 서버 주소)가 필요합니다")
+    elif keys != {"client_id", "client_secret"}:
         errors.append(f"connectors/{name}: fields 는 client_id 와 client_secret 이어야 합니다")
     for key in ("client_id", "client_secret", "client_secret_env", "variants", "allowed_roles"):
         if key in (doc.get("provider") or {}):

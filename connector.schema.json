@@ -12,8 +12,7 @@
     "display_name",
     "description",
     "provider",
-    "servers",
-    "fields"
+    "servers"
   ],
   "properties": {
     "schema_version": {
@@ -40,19 +39,35 @@
     },
     "provider": {
       "type": "object",
-      "description": "Gate provider 정의(providers.yaml 한 블록에서 Client ID·Secret 만 뺀 것). Client ID·Secret·variants·allowed_roles 는 넣을 수 없다.",
-      "required": [
-        "authorize_url",
-        "token_url"
-      ],
+      "description": "Gate provider 정의(providers.yaml 한 블록에서 Client ID·Secret 만 뺀 것). Client ID·Secret·variants·allowed_roles 는 넣을 수 없다. 앱을 직접 만드는 커넥터는 authorize_url·token_url, MCP 표준 OAuth 커넥터는 discovery(mcp)와 resource(MCP 서버 주소)를 쓴다.",
       "properties": {
         "authorize_url": {
           "$ref": "#/$defs/https"
         },
         "token_url": {
           "$ref": "#/$defs/https"
+        },
+        "resource": {
+          "$ref": "#/$defs/https"
+        },
+        "discovery": {
+          "const": "mcp"
         }
-      }
+      },
+      "anyOf": [
+        {
+          "required": [
+            "authorize_url",
+            "token_url"
+          ]
+        },
+        {
+          "required": [
+            "discovery",
+            "resource"
+          ]
+        }
+      ]
     },
     "servers": {
       "type": "array",
@@ -63,11 +78,10 @@
     },
     "fields": {
       "type": "array",
-      "minItems": 1,
       "items": {
         "$ref": "#/$defs/field"
       },
-      "description": "설치 화면이 관리자에게 받는 값. client_id·client_secret 가 있어야 한다."
+      "description": "설치 화면이 관리자에게 받는 값. 앱을 직접 만드는 커넥터는 client_id·client_secret, MCP 표준 OAuth(provider.discovery) 커넥터는 비어 있다."
     }
   },
   "$defs": {

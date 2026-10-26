@@ -66,6 +66,7 @@ Apache License 2.0 — [LICENSE](LICENSE), [NOTICE](NOTICE).
 외부 서비스(GitHub·Slack 등)에 사용자 계정으로 연결하는 **OAuth 커넥터**는 `catalog.json` 의 `connectors[]` 와 `connectors/<이름>/<이름>-<버전>.json` 파일로 올립니다. 옛 Grid 는 `connectors[]` 를 무시하므로 `schema_version` 은 2 그대로입니다.
 
 - 파일 형식은 [`connector.schema.json`](connector.schema.json) 입니다. 한 파일에 Gate **provider 정의**(OAuth 주소·scope·토큰 경로, Client ID·Secret 제외), Grid **서버**(URL·위임·선택적 도구 스냅샷), 설치 화면이 받을 **입력 항목**(`client_id`, `client_secret`), 앱 만드는 **안내**(`provider.setup`)가 들어 있습니다.
+- 앱을 직접 만들어야 하는 커넥터(Slack·GitHub·구글)는 `provider` 에 OAuth 주소를 적고 `fields` 로 Client ID·Secret 을 받습니다. **MCP 표준 OAuth 를 지원하는 서버(Notion·Atlassian·Linear 등)** 는 `provider.discovery: "mcp"` 와 `provider.resource`(MCP 서버 주소)만 적습니다. Gate 가 서버에서 인증 서버를 찾아 스스로 등록하므로 `fields` 는 비어 있고 관리자가 입력할 값이 없습니다 (예: `connectors/notion`).
 - 관리자가 Pylon 관리 화면에서 설치합니다. 설치는 선택이며, 서버 접속·nginx·재시작 같은 시스템 설정이 필요 없습니다. 콜백 주소는 규칙(`<공개 주소>/<Gate 경로>/v1/connections/<이름>/callback`)으로 정해지므로 커넥터를 늘려도 그대로입니다.
 - **Client Secret 은 정의의 `token_url` 로 전송됩니다.** 그래서 Gate 가 설치할 때 https·공개 호스트·알려진 필드만 받도록 다시 검증하고, 이 저장소의 CI 는 sha256·스키마·이름/버전 일치·정의에 Client ID/Secret 이 없는지 확인합니다.
 - 새 커넥터를 올릴 때: 파일을 추가하고, `catalog.json` 의 `connectors[]` 에 항목(`path`, `sha256`)을 넣고, `uv run python scripts/validate.py` 로 확인합니다.

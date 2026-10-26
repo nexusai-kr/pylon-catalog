@@ -204,6 +204,16 @@
       "license": "Apache-2.0",
       "path": "connectors/slack/slack-1.0.0.json",
       "sha256": "472f5e3fa21c0958e86c6e089e509a26089ebf60c17aa7cdef718252ab33d226"
+    },
+    {
+      "name": "notion",
+      "display_name": "Notion",
+      "description": "페이지·데이터베이스 검색과 읽기 (Notion 공식 원격 MCP)",
+      "category": "협업",
+      "version": "1.0.0",
+      "license": "Apache-2.0",
+      "path": "connectors/notion/notion-1.0.0.json",
+      "sha256": "8a54330338273ffba0297fd088ceedfd8e7baed444b49ac59706e96022b21d90"
     }
   ]
 }

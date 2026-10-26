@@ -193,3 +193,24 @@ def test_connector_entry_schema_and_duplicates():
     assert lib.validate({**cat(), "connectors": [entry]}) == []
     errors = " ".join(lib.validate({**cat(), "connectors": [entry, {**entry, "path": "x/y.json", "name": "Bad Name"}, entry]}))
     assert "중복" in errors and "pattern" in errors.lower() or "does not match" in errors
+
+
+def test_discovery_connector_rules(tmp_path):
+    import shutil
+
+    shutil.copytree(lib.ROOT / "connectors", tmp_path / "connectors")
+    shutil.copy(lib.ROOT / "connector.schema.json", tmp_path / "connector.schema.json")
+    catalog = lib.load()
+    entry = next(c for c in catalog["connectors"] if c["name"] == "notion")
+    f = tmp_path / entry["path"]
+
+    def rewrite(mutate):
+        doc = json.loads(f.read_text(encoding="utf-8"))
+        mutate(doc)
+        f.write_text(json.dumps(doc), encoding="utf-8")
+        entry["sha256"] = hashlib.sha256(f.read_bytes()).hexdigest()
+        return " ".join(lib.validate(catalog, root=tmp_path))
+
+    assert rewrite(lambda d: None) == ""
+    assert "fields" in rewrite(lambda d: d.update(fields=[{"key": "client_id", "label": "ID"}]))
+    assert "resource" in rewrite(lambda d: d["provider"].pop("resource"))
