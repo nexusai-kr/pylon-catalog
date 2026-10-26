@@ -6,7 +6,7 @@ from __future__ import annotations
 import argparse
 import sys
 
-from catalog_lib import fetch, load, validate, verify_bundle, verify_plugin
+from catalog_lib import ROOT, fetch, load, validate, verify_bundle, verify_plugin
 
 
 def main() -> int:
@@ -14,7 +14,7 @@ def main() -> int:
     ap.add_argument("--verify-downloads", action="store_true")
     args = ap.parse_args()
     catalog = load()
-    errors = validate(catalog)
+    errors = validate(catalog, root=ROOT)
     if args.verify_downloads and not errors:
         for key, verify in (("servers", verify_bundle), ("plugins", verify_plugin)):
             for s in catalog[key]:
@@ -24,7 +24,8 @@ def main() -> int:
                     errors.append(f"{key}/{s['name']}: 내려받지 못했습니다 ({exc})")
     for e in errors:
         print("ERROR", e)
-    print(f"서버 {len(catalog['servers'])}개, 플러그인 {len(catalog['plugins'])}개, 오류 {len(errors)}건")
+    print(f"서버 {len(catalog['servers'])}개, 플러그인 {len(catalog['plugins'])}개, "
+          f"커넥터 {len(catalog.get('connectors', []))}개, 오류 {len(errors)}건")
     return 1 if errors else 0
 
 

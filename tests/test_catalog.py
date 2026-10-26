@@ -28,7 +28,7 @@ def mcpb(name="google-gmail", version="0.1.0"):
 
 
 def test_committed_catalog_is_valid():
-    assert lib.validate(lib.load()) == []
+    assert lib.validate(lib.load(), root=lib.ROOT) == []
 
 
 def test_good_entry_passes():
@@ -165,3 +165,75 @@ def test_plugin_path_traversal_rejected():
     data = plugin_zip(extra={"../evil": "x"}, top="")
     entry = plugin_entry(data)
     assert any("경로" in e for e in lib.verify_plugin(entry, data))
+
+
+def test_connector_files_are_checked(tmp_path):
+    import shutil
+
+    shutil.copytree(lib.ROOT / "connectors", tmp_path / "connectors")
+    shutil.copy(lib.ROOT / "connector.schema.json", tmp_path / "connector.schema.json")
+    catalog = lib.load()
+    assert lib.validate(catalog, root=tmp_path) == []
+    # 파일이 바뀌면 sha256 이 다르다
+    f = tmp_path / "connectors/slack/slack-1.0.0.json"
+    f.write_text(f.read_text(encoding="utf-8") + "\n", encoding="utf-8")
+    assert any("sha256" in e for e in lib.validate(catalog, root=tmp_path))
+    # Client ID·Secret 이 정의에 들어 있으면 거부 (sha256 도 맞춰 다시 쓴다)
+    doc = json.loads(f.read_text(encoding="utf-8"))
+    doc["provider"]["client_secret"] = "x"
+    f.write_text(json.dumps(doc), encoding="utf-8")
+    entry = next(c for c in catalog["connectors"] if c["name"] == "slack")
+    entry["sha256"] = hashlib.sha256(f.read_bytes()).hexdigest()
+    assert any("client_secret" in e for e in lib.validate(catalog, root=tmp_path))
+
+
+def test_connector_entry_schema_and_duplicates():
+    entry = {"name": "acme", "display_name": "A", "description": "d", "version": "1.0.0", "license": "Apache-2.0",
+             "path": "connectors/acme/acme-1.0.0.json", "sha256": SHA}
+    assert lib.validate({**cat(), "connectors": [entry]}) == []
+    errors = " ".join(lib.validate({**cat(), "connectors": [entry, {**entry, "path": "x/y.json", "name": "Bad Name"}, entry]}))
+    assert "중복" in errors and "pattern" in errors.lower() or "does not match" in errors
+
+
+def test_discovery_connector_rules(tmp_path):
+    import shutil
+
+    shutil.copytree(lib.ROOT / "connectors", tmp_path / "connectors")
+    shutil.copy(lib.ROOT / "connector.schema.json", tmp_path / "connector.schema.json")
+    catalog = lib.load()
+    entry = next(c for c in catalog["connectors"] if c["name"] == "notion")
+    f = tmp_path / entry["path"]
+
+    def rewrite(mutate):
+        doc = json.loads(f.read_text(encoding="utf-8"))
+        mutate(doc)
+        f.write_text(json.dumps(doc), encoding="utf-8")
+        entry["sha256"] = hashlib.sha256(f.read_bytes()).hexdigest()
+        return " ".join(lib.validate(catalog, root=tmp_path))
+
+    assert rewrite(lambda d: None) == ""
+    assert "fields" in rewrite(lambda d: d.update(fields=[{"key": "client_id", "label": "ID"}]))
+    assert "resource" in rewrite(lambda d: d["provider"].pop("resource"))
+
+
+def test_connector_tools_and_policy_rules(tmp_path):
+    import shutil
+
+    shutil.copytree(lib.ROOT / "connectors", tmp_path / "connectors")
+    shutil.copy(lib.ROOT / "connector.schema.json", tmp_path / "connector.schema.json")
+    catalog = lib.load()
+    entry = next(c for c in catalog["connectors"] if c["name"] == "notion")
+    f = tmp_path / entry["path"]
+
+    def rewrite(mutate):
+        doc = json.loads(f.read_text(encoding="utf-8"))
+        mutate(doc)
+        f.write_text(json.dumps(doc), encoding="utf-8")
+        entry["sha256"] = hashlib.sha256(f.read_bytes()).hexdigest()
+        return " ".join(lib.validate(catalog, root=tmp_path))
+
+    assert rewrite(lambda d: None) == ""
+    assert "중복" in rewrite(lambda d: d["servers"][0]["tools"].append(dict(d["servers"][0]["tools"][0])))
+    assert "읽기 전용" in rewrite(lambda d: [t.pop("annotations", None) for t in d["servers"][0]["tools"]])
+    assert "tools(도구 목록)" in rewrite(lambda d: d["servers"][0].update(tools=[]))
+    assert "policy" in rewrite(lambda d: d["servers"][0].update(policy={"tools": "bogus"}))

@@ -4,5 +4,37 @@
   "display_name": "Pylon 카탈로그",
   "description": "Pylon Grid 에 설치할 수 있는 MCP 서버와 플러그인 목록",
   "servers": [],
-  "plugins": []
+  "plugins": [],
+  "connectors": [
+    {
+      "name": "github",
+      "display_name": "GitHub (읽기 전용)",
+      "description": "저장소·이슈·PR 조회",
+      "category": "개발",
+      "version": "1.0.0",
+      "license": "Apache-2.0",
+      "path": "connectors/github/github-1.0.0.json",
+      "sha256": "ddef2658004de84aed5ba00396ec32d8890c6557fd0b2af0f4a2d5466531c452"
+    },
+    {
+      "name": "slack",
+      "display_name": "Slack (읽기 전용)",
+      "description": "메시지·채널·캔버스 검색과 읽기",
+      "category": "협업",
+      "version": "1.0.0",
+      "license": "Apache-2.0",
+      "path": "connectors/slack/slack-1.0.0.json",
+      "sha256": "421539017fa867172e99889785ebece86289f89638a5da0f19cb9ec2e9215cbc"
+    },
+    {
+      "name": "notion",
+      "display_name": "Notion",
+      "description": "페이지·데이터베이스 검색과 읽기 (Notion 공식 원격 MCP)",
+      "category": "협업",
+      "version": "1.0.0",
+      "license": "Apache-2.0",
+      "path": "connectors/notion/notion-1.0.0.json",
+      "sha256": "c73a328deb3f909ca7a534f615585ab847c2fa20e1db918a20f922f0a660cb3a"
+    }
+  ]
 }
