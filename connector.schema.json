@@ -167,7 +167,24 @@
               },
               "annotations": {
                 "type": "object"
+              },
+              "title": {
+                "type": "string"
               }
+            }
+          },
+          "maxItems": 300
+        },
+        "policy": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "tools": {
+              "enum": [
+                "read_only",
+                "all"
+              ],
+              "description": "설치할 때 만들 도구 허용 목록 초안. read_only: 읽기 전용 표시(annotations.readOnlyHint)가 있는 도구만, all: tools 의 모든 도구. 없으면 허용 목록을 만들지 않는다."
             }
           }
         }

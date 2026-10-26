@@ -193,7 +193,7 @@
       "version": "1.0.0",
       "license": "Apache-2.0",
       "path": "connectors/github/github-1.0.0.json",
-      "sha256": "ed304620943af951967b37e3b96d9296b7587575b66a6a5b222a8754e2e19630"
+      "sha256": "ddef2658004de84aed5ba00396ec32d8890c6557fd0b2af0f4a2d5466531c452"
     },
     {
       "name": "slack",
@@ -203,7 +203,7 @@
       "version": "1.0.0",
       "license": "Apache-2.0",
       "path": "connectors/slack/slack-1.0.0.json",
-      "sha256": "472f5e3fa21c0958e86c6e089e509a26089ebf60c17aa7cdef718252ab33d226"
+      "sha256": "421539017fa867172e99889785ebece86289f89638a5da0f19cb9ec2e9215cbc"
     },
     {
       "name": "notion",
@@ -213,7 +213,7 @@
       "version": "1.0.0",
       "license": "Apache-2.0",
       "path": "connectors/notion/notion-1.0.0.json",
-      "sha256": "8a54330338273ffba0297fd088ceedfd8e7baed444b49ac59706e96022b21d90"
+      "sha256": "c73a328deb3f909ca7a534f615585ab847c2fa20e1db918a20f922f0a660cb3a"
     }
   ]
 }

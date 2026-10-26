@@ -14,6 +14,7 @@ from jsonschema import Draft202012Validator
 
 ROOT = Path(__file__).resolve().parents[1]
 TRUSTED_OWNERS = {"nexusai-kr"}  # 다운로드를 허용하는 GitHub 소유자. 다른 조직을 올리려면 여기에 추가하는 PR 을 별도로 검토한다.
+MAX_CONNECTOR_BYTES = 1024 * 1024  # 커넥터 파일 하나의 상한 (Grid 도 같은 값으로 거른다)
 MAX_BYTES = 200 * 1024 * 1024  # Grid 의 번들 상한과 같다
 KINDS = {"servers": ("mcpb", "서버"), "plugins": ("zip", "플러그인")}
 PLUGIN_MANIFESTS = (".claude-plugin/plugin.json", "plugin.json")
@@ -79,6 +80,18 @@ def validate_connector_file(entry: dict, root: Path) -> list[str]:
               for e in Draft202012Validator(schema).iter_errors(doc)]
     if doc.get("name") != name or doc.get("version") != entry.get("version"):
         errors.append(f"connectors/{name}: 파일의 name/version 이 카탈로그 항목과 다릅니다")
+    if len(data) > MAX_CONNECTOR_BYTES:
+        errors.append(f"connectors/{name}: 파일이 상한({MAX_CONNECTOR_BYTES:,} 바이트)을 넘습니다")
+    for srv in doc.get("servers", []):
+        names = [t.get("name") for t in srv.get("tools", []) if isinstance(t, dict)]
+        if len(names) != len(set(names)):
+            errors.append(f"connectors/{name}: 서버 {srv.get('name')} 의 도구 이름이 중복되었습니다")
+        if (srv.get("policy") or {}).get("tools") == "read_only" and not any(
+            (t.get("annotations") or {}).get("readOnlyHint") is True for t in srv.get("tools", []) if isinstance(t, dict)
+        ):
+            errors.append(f"connectors/{name}: policy.tools=read_only 인데 읽기 전용 표시가 있는 도구가 없습니다")
+        if (srv.get("policy") or {}).get("tools") and not srv.get("tools"):
+            errors.append(f"connectors/{name}: policy 가 있으면 tools(도구 목록)도 있어야 합니다")
     keys = {f.get("key") for f in doc.get("fields", [])}
     if (doc.get("provider") or {}).get("discovery"):  # MCP 표준 OAuth: 서버에 자동 등록하므로 관리자 입력이 없다
         if keys:

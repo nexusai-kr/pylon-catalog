@@ -214,3 +214,26 @@ def test_discovery_connector_rules(tmp_path):
     assert rewrite(lambda d: None) == ""
     assert "fields" in rewrite(lambda d: d.update(fields=[{"key": "client_id", "label": "ID"}]))
     assert "resource" in rewrite(lambda d: d["provider"].pop("resource"))
+
+
+def test_connector_tools_and_policy_rules(tmp_path):
+    import shutil
+
+    shutil.copytree(lib.ROOT / "connectors", tmp_path / "connectors")
+    shutil.copy(lib.ROOT / "connector.schema.json", tmp_path / "connector.schema.json")
+    catalog = lib.load()
+    entry = next(c for c in catalog["connectors"] if c["name"] == "notion")
+    f = tmp_path / entry["path"]
+
+    def rewrite(mutate):
+        doc = json.loads(f.read_text(encoding="utf-8"))
+        mutate(doc)
+        f.write_text(json.dumps(doc), encoding="utf-8")
+        entry["sha256"] = hashlib.sha256(f.read_bytes()).hexdigest()
+        return " ".join(lib.validate(catalog, root=tmp_path))
+
+    assert rewrite(lambda d: None) == ""
+    assert "중복" in rewrite(lambda d: d["servers"][0]["tools"].append(dict(d["servers"][0]["tools"][0])))
+    assert "읽기 전용" in rewrite(lambda d: [t.pop("annotations", None) for t in d["servers"][0]["tools"]])
+    assert "tools(도구 목록)" in rewrite(lambda d: d["servers"][0].update(tools=[]))
+    assert "policy" in rewrite(lambda d: d["servers"][0].update(policy={"tools": "bogus"}))
